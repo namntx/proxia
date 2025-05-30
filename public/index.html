@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chọn Proxy cho Telegram</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-center">Chọn Proxy cho Telegram</h1>
+        <div id="authForm" class="mb-4">
+            <label for="password" class="block text-sm font-medium text-gray-700">Mật khẩu</label>
+            <input type="password" id="password" class="mt-1 p-2 w-full border rounded" placeholder="Nhập mật khẩu">
+            <button id="authBtn" class="w-full bg-green-500 text-white py-2 mt-4 rounded hover:bg-green-600">Xác
+                thực</button>
+        </div>
+        <div id="proxyForm" class="hidden">
+            <div id="proxyList" class="space-y-4">
+                <!-- Danh sách proxy sẽ được thêm động bằng JavaScript -->
+            </div>
+            <button id="connectBtn" class="w-full bg-blue-500 text-white py-2 mt-4 rounded hover:bg-blue-600">Kết nối
+                qua Telegram</button>
+        </div>
+        <p id="error" class="text-red-500 text-sm mt-2 hidden"></p>
+    </div>
+
+    <script>
+        const authBtn = document.getElementById('authBtn');
+        const connectBtn = document.getElementById('connectBtn');
+        const authForm = document.getElementById('authForm');
+        const proxyForm = document.getElementById('proxyForm');
+        const proxyList = document.getElementById('proxyList');
+        const passwordInput = document.getElementById('password');
+        const errorMsg = document.getElementById('error');
+
+        // Xử lý xác thực
+        authBtn.addEventListener('click', async () => {
+            const password = passwordInput.value;
+            if (!password) {
+                errorMsg.textContent = 'Vui lòng nhập mật khẩu';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/proxies', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    errorMsg.classList.add('hidden');
+                    authForm.classList.add('hidden');
+                    proxyForm.classList.remove('hidden');
+
+                    proxyList.innerHTML = '';
+                    data.forEach(proxy => {
+                        const div = document.createElement('div');
+                        div.innerHTML = `
+              <label class="flex items-center space-x-2">
+                <input type="radio" name="proxy" value="${proxy.id}" class="form-radio">
+                <span>${proxy.type} - ${proxy.ip}:${proxy.port}</span>
+              </label>
+            `;
+                        proxyList.appendChild(div);
+                    });
+                } else {
+                    errorMsg.textContent = data.error || 'Lỗi khi lấy danh sách proxy';
+                    errorMsg.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Lỗi kết nối server';
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        // Xử lý kết nối Telegram
+        connectBtn.addEventListener('click', async () => {
+            const selectedProxyId = document.querySelector('input[name="proxy"]:checked')?.value;
+            if (!selectedProxyId) {
+                errorMsg.textContent = 'Vui lòng chọn một proxy!';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: passwordInput.value, proxyId: parseInt(selectedProxyId) })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = data.telegramUrl;
+                } else {
+                    errorMsg.textContent = data.error || 'Lỗi khi tạo URL Telegram';
+                    errorMsg.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Lỗi kết nối server';
+                errorMsg.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>
