@@ -1,9 +1,9 @@
 const dotenv = require('dotenv');
 
-// Tải biến môi trường từ Vercel (không cần file .env khi triển khai)
 dotenv.config();
 
 module.exports = async (req, res) => {
+    console.log('API /api/proxies called with method:', req.method, 'body:', req.body);
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -13,7 +13,6 @@ module.exports = async (req, res) => {
         return res.status(401).json({ error: 'Mật khẩu không đúng' });
     }
 
-    // Danh sách proxy
     const proxies = [
         {
             id: 1,
@@ -29,6 +28,5 @@ module.exports = async (req, res) => {
         }
     ];
 
-    // Chỉ gửi thông tin an toàn (không gửi username/password)
     res.json(proxies);
 };
