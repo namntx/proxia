@@ -19,7 +19,8 @@ module.exports = async (req, res) => {
             port: parseInt(process.env.PROXY_1_PORT),
             type: process.env.PROXY_1_TYPE,
             username: process.env.PROXY_1_USERNAME,
-            password: process.env.PROXY_1_PASSWORD
+            password: process.env.PROXY_1_PASSWORD,
+            secret: process.env.PROXY_1_SECRET
         },
         {
             id: 2,
@@ -27,7 +28,8 @@ module.exports = async (req, res) => {
             port: parseInt(process.env.PROXY_2_PORT),
             type: process.env.PROXY_2_TYPE,
             username: process.env.PROXY_2_USERNAME,
-            password: process.env.PROXY_2_PASSWORD
+            password: process.env.PROXY_2_PASSWORD,
+            secret: process.env.PROXY_2_SECRET
         }
     ];
 
@@ -36,7 +38,6 @@ module.exports = async (req, res) => {
         return res.status(404).json({ error: 'Proxy không tồn tại' });
     }
 
-    const telegramUrl = `tg://proxy?server=${proxy.ip}&port=${proxy.port}&secret=${proxy.username ? `${Buffer.from(`${proxy.username}:${proxy.password}`).toString('base64')}@` : ''
-        }${proxy.type.toLowerCase()}`;
+    const telegramUrl = `tg://proxy?server=${proxy.ip}&port=${proxy.port}&secret=${proxy.secret}`;
     res.json({ telegramUrl });
 };
